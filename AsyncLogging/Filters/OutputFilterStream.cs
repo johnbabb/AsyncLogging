@@ -1,4 +1,4 @@
-﻿namespace AsyncLogging
+﻿namespace AsyncLogging.Filters
 {
     using System;
     using System.IO;
