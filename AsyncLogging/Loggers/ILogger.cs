@@ -9,5 +9,6 @@
         IAsyncResult BeginRequestAsyncEventHandler(Object source, EventArgs e, AsyncCallback cb, Object state);
 
         void EndRequestAsyncEventHandler(IAsyncResult ar);
+
     }
 }

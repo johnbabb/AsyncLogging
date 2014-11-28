@@ -95,6 +95,14 @@ namespace AsyncLogging
             }
         }
 
+        public static string ContentTypes
+        {
+            get
+            {
+                return _settings.FirstOrDefault(w => w.Key == "ContentTypes").Value;
+            }
+        }
+
         public static void InitializeSettings()
         {
             Settings.GetOrAdd("LoggerType", Properties.Settings.Default.LoggerType);
@@ -103,6 +111,7 @@ namespace AsyncLogging
             Settings.GetOrAdd("Enabled", Properties.Settings.Default.Enabled);
             Settings.GetOrAdd("StatusCodes", Properties.Settings.Default.StatusCodes);
             Settings.GetOrAdd("SqlInsertStatement", Properties.Settings.Default.SqlInsertStatement);
+            Settings.GetOrAdd("ContentTypes", Properties.Settings.Default.ContentTypes);
         }
     }
 }

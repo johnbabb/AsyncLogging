@@ -61,7 +61,7 @@ namespace AsyncLogging.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("*")]
+        [global::System.Configuration.DefaultSettingValueAttribute("200|500|600")]
         public string StatusCodes {
             get {
                 return ((string)(this["StatusCodes"]));
@@ -74,6 +74,15 @@ namespace AsyncLogging.Properties {
         public string SqlInsertStatement {
             get {
                 return ((string)(this["SqlInsertStatement"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("json|xml|html|text")]
+        public string ContentTypes {
+            get {
+                return ((string)(this["ContentTypes"]));
             }
         }
     }

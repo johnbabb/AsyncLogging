@@ -2,15 +2,25 @@
 namespace AsyncLogging.Loggers
 {
     using System.IO;
+    using System.Text.RegularExpressions;
     using System.Web;
 
     using AsyncLogging.Filters;
 
     public static class LoggerHelper
     {
-        public static string GetResponseContents()
+        private static string FilterName = "AsyncLogHandlerFilter";
+
+        public static void InitOutputFilterStream(HttpApplication app)
         {
-            var stream = HttpContext.Current.Items["AsyncLogHandlerFilter"] as OutputFilterStream;
+            var filter = new OutputFilterStream(app.Response.Filter);
+            app.Response.Filter = filter;
+            HttpContext.Current.Items.Add(FilterName, filter);
+        }
+
+        public static string GetOutputFilterStreamContents()
+        {
+            var stream = HttpContext.Current.Items[FilterName] as OutputFilterStream;
             return stream.ReadStream();
         }
 
@@ -36,6 +46,25 @@ namespace AsyncLogging.Loggers
                 }
             }
             return documentContents;
+        }
+
+        public static bool IsLoggingContentTypes(HttpRequest request, string contentTypes)
+        {
+            if (Regex.IsMatch(request.ContentType, contentTypes, RegexOptions.IgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsLoggingStatusCodes(HttpResponse response, string statusCodes)
+        {
+            if (Regex.IsMatch(response.StatusCode.ToString(), statusCodes))
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

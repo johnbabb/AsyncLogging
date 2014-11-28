@@ -15,19 +15,15 @@
 
         public void InitializeRequestHandler(object source, EventArgs e)
         {
-            var settings = AsyncConfig.Settings;
-            HttpApplication app = (HttpApplication)source;
-            var filter = new OutputFilterStream(app.Response.Filter);
-            app.Response.Filter = filter; 
-            HttpContext.Current.Items.Add("AsyncLogHandlerFilter", filter);
+           LoggerHelper.InitOutputFilterStream(source as HttpApplication);
         }
 
         public IAsyncResult BeginRequestAsyncEventHandler(object source, EventArgs e, AsyncCallback cb, object state)
         {
-            HttpApplication app = (HttpApplication)source;
+            var app = source as HttpApplication;
             DateTime time = DateTime.Now;
             var strRequest = LoggerHelper.GetDocumentContents(app.Request);
-            var strResponse = LoggerHelper.GetResponseContents();
+            var strResponse = LoggerHelper.GetOutputFilterStreamContents();
             var nameOrAddress = LoggerHelper.GetNameOrAddress(app);
             string line = string.Format("{0}|{1}|{2}|{3}|{4}|{5}|{6}\r\n", time.Ticks, app.Response.StatusCode, nameOrAddress, app.Request.HttpMethod, app.Request.Url, strRequest, strResponse);
             byte[] output = Encoding.ASCII.GetBytes(line);
@@ -45,6 +41,13 @@
             this.file.EndWrite(ar);
             this.file.Close();
         }
+
+        void Log(ServerRequestLog log)
+        {
+            
+        }
+
+        ServerRequestLog BuildLog()
 
         public void Dispose()
         {
