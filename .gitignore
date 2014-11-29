@@ -1,1 +1,7 @@
 AsyncLogging/bin/*
+/AsyncLogging.Tests/obj
+/AsyncLogging.Tests/bin
+/AsyncLogging/obj
+/AsyncLogging/bin
+AsyncLogging.sln.DotSettings.user
+AsyncLogging.v12.suo
