@@ -1,6 +1,7 @@
 ﻿
 namespace AsyncLogging.Loggers
 {
+    using System;
     using System.IO;
     using System.Text.RegularExpressions;
     using System.Web;
@@ -9,19 +10,13 @@ namespace AsyncLogging.Loggers
 
     public static class LoggerHelper
     {
-        private static string FilterName = "AsyncLogHandlerFilter";
-
-        public static void InitOutputFilterStream(HttpApplication app)
+        public static string GetOutputFilterStreamContents(OutputFilterStream filter)
         {
-            var filter = new OutputFilterStream(app.Response.Filter);
-            app.Response.Filter = filter;
-            HttpContext.Current.Items.Add(FilterName, filter);
-        }
-
-        public static string GetOutputFilterStreamContents()
-        {
-            var stream = HttpContext.Current.Items[FilterName] as OutputFilterStream;
-            return stream.ReadStream();
+            if (filter != null)
+            {
+                return filter.ReadStream();
+            }
+            return null;
         }
 
         public static string GetNameOrAddress(HttpApplication app)
@@ -48,7 +43,7 @@ namespace AsyncLogging.Loggers
             return documentContents;
         }
 
-        public static bool IsLoggingContentTypes(HttpRequest request, string contentTypes)
+        public static bool IsLoggingContentType(HttpRequest request, string contentTypes)
         {
             if (Regex.IsMatch(request.ContentType, contentTypes, RegexOptions.IgnoreCase))
             {
@@ -58,13 +53,34 @@ namespace AsyncLogging.Loggers
             return false;
         }
 
-        public static bool IsLoggingStatusCodes(HttpResponse response, string statusCodes)
+        public static bool IsLoggingStatusCode(HttpResponse response, string statusCodes)
         {
             if (Regex.IsMatch(response.StatusCode.ToString(), statusCodes))
             {
                 return true;
             }
             return false;
+        }
+
+        public static ServerRequestLog InitializeServerRequestLog(HttpApplication app, OutputFilterStream filter)
+        {
+            DateTime time = DateTime.Now;
+            var strRequest = LoggerHelper.GetDocumentContents(app.Request);
+            var strResponse = LoggerHelper.GetOutputFilterStreamContents(filter);
+            var nameOrAddress = LoggerHelper.GetNameOrAddress(app);
+
+            return new ServerRequestLog()
+                       {
+                           Host = app.Request.Url.Host,
+                           RequestBody = strRequest,
+                           RequestBy = nameOrAddress,
+                           RequestDate = time,
+                           RequestDateInTicks = time.Ticks,
+                           RequestMethod = app.Request.HttpMethod,
+                           RequestUrl = app.Request.RawUrl,
+                           ResponseBody = strResponse,
+                           ResponseCode = app.Response.StatusCode
+                       };
         }
     }
 }

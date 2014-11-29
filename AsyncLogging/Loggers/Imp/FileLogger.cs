@@ -11,47 +11,61 @@
     {
         private static long position = 0;
         private static object @lock = new object();
-        private FileStream file;               
+        private FileStream file; 
+           
 
         public void InitializeRequestHandler(object source, EventArgs e)
         {
-           LoggerHelper.InitOutputFilterStream(source as HttpApplication);
+
         }
 
-        public IAsyncResult BeginRequestAsyncEventHandler(object source, EventArgs e, AsyncCallback cb, object state)
+        public IAsyncResult BeginRequestAsyncEventHandler(object source, EventArgs e, AsyncCallback cb, object state, OutputFilterStream filter)
         {
             var app = source as HttpApplication;
-            DateTime time = DateTime.Now;
-            var strRequest = LoggerHelper.GetDocumentContents(app.Request);
-            var strResponse = LoggerHelper.GetOutputFilterStreamContents();
-            var nameOrAddress = LoggerHelper.GetNameOrAddress(app);
-            string line = string.Format("{0}|{1}|{2}|{3}|{4}|{5}|{6}\r\n", time.Ticks, app.Response.StatusCode, nameOrAddress, app.Request.HttpMethod, app.Request.Url, strRequest, strResponse);
-            byte[] output = Encoding.ASCII.GetBytes(line);
-            lock (@lock)
-            {
-                this.file = new FileStream(HttpContext.Current.Server.MapPath("~/App_Data/RequestLog.txt"), FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write, 1024, true);
-                this.file.Seek(position, SeekOrigin.Begin);
-                position += output.Length;
-                return this.file.BeginWrite(output, 0, output.Length, cb, state);
-            }
+            var logData = LoggerHelper.InitializeServerRequestLog(app, filter);
+            string line = string.Format("{0}|{1}|{2}|{3}|{4}|{5}|{6}\r\n", 
+                logData.RequestDateInTicks, logData.ResponseCode, logData.RequestBy, logData.RequestMethod, logData.RequestUrl, logData.RequestBody, logData.ResponseBody);
+            
+            return this.WriteLog(line, cb, state);
         }
-
+        
         public void EndRequestAsyncEventHandler(IAsyncResult ar)
         {
             this.file.EndWrite(ar);
             this.file.Close();
         }
 
-        void Log(ServerRequestLog log)
-        {
-            
-        }
-
-        ServerRequestLog BuildLog()
-
         public void Dispose()
         {
            
+        }
+
+        protected string FormatRow(ServerRequestLog logData)
+        {
+            string line = string.Format("{0}|{1}|{2}|{3}|{4}|{5}|{6}\r\n",
+                logData.RequestDateInTicks, logData.ResponseCode, logData.RequestBy, logData.RequestMethod, logData.RequestUrl, logData.RequestBody, logData.ResponseBody);
+            
+            return line;
+        }
+
+        protected IAsyncResult WriteLog(string line, AsyncCallback cb, object state)
+        {
+            byte[] output = Encoding.ASCII.GetBytes(line);
+            lock (@lock)
+            {
+                this.file = new FileStream(this.LogFileFullName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write, 1024, true);
+                this.file.Seek(position, SeekOrigin.Begin);
+                position += output.Length;
+                return this.file.BeginWrite(output, 0, output.Length, cb, state);
+            }
+        }
+        
+        protected string LogFileFullName
+        {
+            get
+            {
+                return HttpContext.Current.Server.MapPath(AsyncConfig.LogfileFullName);
+            }
         }
     }
 }

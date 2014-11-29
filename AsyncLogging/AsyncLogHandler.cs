@@ -19,12 +19,14 @@ namespace AsyncLogging
             AsyncConfig.InitializeSettings();
 
             if (AsyncConfig.Enabled && 
-                LoggerHelper.IsLoggingContentTypes(application.Request, AsyncConfig.ContentTypes) &&
-                LoggerHelper.IsLoggingStatusCodes(application.Response, AsyncConfig.StatusCodes))
+                LoggerHelper.IsLoggingContentType(application.Request, AsyncConfig.ContentTypes) &&
+                LoggerHelper.IsLoggingStatusCode(application.Response, AsyncConfig.StatusCodes))
             {
                 this.Logger = LogFactory.Make(AsyncConfig.LoggerType);
 
+                application.BeginRequest += this.InitializeRequestHandler;
                 application.BeginRequest += this.Logger.InitializeRequestHandler;
+
                 application.AddOnEndRequestAsync(
                     this.BeginRequestAsyncEventHandler,
                     this.EndRequestAsyncEventHandler);
@@ -49,7 +51,8 @@ namespace AsyncLogging
 
         private IAsyncResult BeginRequestAsyncEventHandler(Object source, EventArgs e, AsyncCallback cb, Object state)
         {
-            return this.Logger.BeginRequestAsyncEventHandler(source, e, cb, state);
+            var filter = HttpContext.Current.Items[FilterName] as OutputFilterStream;
+            return this.Logger.BeginRequestAsyncEventHandler(source, e, cb, state, filter);
         }
 
         private void EndRequestAsyncEventHandler(IAsyncResult ar)

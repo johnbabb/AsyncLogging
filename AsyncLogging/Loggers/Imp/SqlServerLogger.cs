@@ -3,6 +3,7 @@ namespace AsyncLogging.Loggers.Imp
 {
     using System;
 
+    using AsyncLogging.Filters;
     using AsyncLogging.Properties;
     using AsyncLogging.SqlCommands;
 
@@ -24,7 +25,7 @@ namespace AsyncLogging.Loggers.Imp
             throw new NotImplementedException();
         }
 
-        public IAsyncResult BeginRequestAsyncEventHandler(object source, EventArgs e, AsyncCallback cb, object state)
+        public IAsyncResult BeginRequestAsyncEventHandler(object source, EventArgs e, AsyncCallback cb, object state, OutputFilterStream filter)
         {
             throw new NotImplementedException();
         }
