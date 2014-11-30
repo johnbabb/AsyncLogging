@@ -20,6 +20,8 @@ namespace AsyncLogging.SqlCommands
             VALUES(@RequestDate,@RequestDateInTicks,@RequestBy,@RequestMethod,@RequestUrl,@RequestBody,@ResponseCode,@ResponseBody,@Host,@CreatedOn)
             ";
 
+        protected SqlConnection connection;
+
         public string DefaultConnectionName
         {
             get
@@ -83,6 +85,68 @@ namespace AsyncLogging.SqlCommands
             }
 
             return result;
+        }
+
+        public IAsyncResult BeginExecuteNonQuery(AsyncCallback callback, Object stateObject)
+        {
+            SqlCommand command = null;
+            try
+            {               
+                //connection = new SqlConnection(GetConnectionString());
+                // To emulate a long-running query, wait for  
+                // a few seconds before working with the data. 
+                // This command does not do much, but that's the point-- 
+                // it does not change your data, in the long run. 
+                string commandText =
+                    "WAITFOR DELAY '0:0:05';" +
+                    "UPDATE Production.Product SET ReorderPoint = ReorderPoint + 1 " +
+                    "WHERE ReorderPoint Is Not Null;" +
+                    "UPDATE Production.Product SET ReorderPoint = ReorderPoint - 1 " +
+                    "WHERE ReorderPoint Is Not Null";
+
+                command = new SqlCommand(commandText, connection);
+                connection.Open();
+
+               
+                // Although it is not required that you pass the  
+                // SqlCommand object as the second parameter in the  
+                // BeginExecuteNonQuery call, doing so makes it easier 
+                // to call EndExecuteNonQuery in the callback procedure.
+
+                return command.BeginExecuteNonQuery(callback, command);
+
+            }
+            catch (Exception ex)
+            {
+                if (connection != null)
+                {
+                    connection.Close();
+                }
+            }
+
+            return null;
+        }
+
+        public void EndExecuteNonQuery(IAsyncResult result)
+        {
+            try
+            {
+                var command = (SqlCommand)result.AsyncState;
+                int rowCount = command.EndExecuteNonQuery(result);
+
+            }
+            catch (Exception ex)
+            {
+                //do nothing
+            }
+            finally
+            {
+                if (connection != null)
+                {
+                    connection.Close();
+                }
+            }
+
         }
 
         protected string GetInsertCommandSql()

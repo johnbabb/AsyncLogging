@@ -23,8 +23,7 @@
         {
             var app = source as HttpApplication;
             var logData = LoggerHelper.InitializeServerRequestLog(app, filter);
-            string line = string.Format("{0}|{1}|{2}|{3}|{4}|{5}|{6}\r\n", 
-                logData.RequestDateInTicks, logData.ResponseCode, logData.RequestBy, logData.RequestMethod, logData.RequestUrl, logData.RequestBody, logData.ResponseBody);
+            string line = FormatRow(logData);
             
             return this.WriteLog(line, cb, state);
         }
