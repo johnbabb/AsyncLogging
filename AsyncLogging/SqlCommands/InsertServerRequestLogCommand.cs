@@ -26,7 +26,7 @@ namespace AsyncLogging.SqlCommands
         {
             get
             {
-                return Settings.Default.ConnectionName;
+                return AsyncConfig.ConnectionName;
             }
         }
 
@@ -42,7 +42,7 @@ namespace AsyncLogging.SqlCommands
         {
             get
             {
-                return Settings.Default.SqlInsertStatement.Trim();
+                return AsyncConfig.SqlInsertStatement.Trim();
             }
         }
 
@@ -62,7 +62,7 @@ namespace AsyncLogging.SqlCommands
             this.connectionName = connectionName;
         }
 
-        public InsertServerRequestLogCommand() : this(Settings.Default.ConnectionName)
+        public InsertServerRequestLogCommand() : this(AsyncConfig.ConnectionName)
         {
         
         }
@@ -87,40 +87,29 @@ namespace AsyncLogging.SqlCommands
             return result;
         }
 
-        public IAsyncResult BeginExecuteNonQuery(AsyncCallback callback, Object stateObject)
+        public IAsyncResult BeginExecuteNonQuery(AsyncCallback callback, Object stateObject, ServerRequestLog logData)
         {
             SqlCommand command = null;
             try
-            {               
-                //connection = new SqlConnection(GetConnectionString());
-                // To emulate a long-running query, wait for  
-                // a few seconds before working with the data. 
-                // This command does not do much, but that's the point-- 
-                // it does not change your data, in the long run. 
-                string commandText =
-                    "WAITFOR DELAY '0:0:05';" +
-                    "UPDATE Production.Product SET ReorderPoint = ReorderPoint + 1 " +
-                    "WHERE ReorderPoint Is Not Null;" +
-                    "UPDATE Production.Product SET ReorderPoint = ReorderPoint - 1 " +
-                    "WHERE ReorderPoint Is Not Null";
+            {
+                this.connection = new SqlConnection(GetAsyncConnectionString(this.connectionName));
 
-                command = new SqlCommand(commandText, connection);
-                connection.Open();
 
-               
-                // Although it is not required that you pass the  
-                // SqlCommand object as the second parameter in the  
-                // BeginExecuteNonQuery call, doing so makes it easier 
-                // to call EndExecuteNonQuery in the callback procedure.
+                command = this.GetInsertCommand(logData, this.connection);
+                this.connection.Open();
 
                 return command.BeginExecuteNonQuery(callback, command);
 
             }
             catch (Exception ex)
             {
-                if (connection != null)
+                if (this.connection != null)
                 {
-                    connection.Close();
+                    this.connection.Close();
+                }
+                if (command != null)
+                {
+                    command.Dispose();
                 }
             }
 
@@ -181,14 +170,7 @@ namespace AsyncLogging.SqlCommands
         {
             var connString = "";
             
-            if(ConfigurationManager.ConnectionStrings.Count > 0 && ConfigurationManager.ConnectionStrings[connectionName] != null)
-            {
-                connString = ConfigurationManager.ConnectionStrings[connectionName].ConnectionString;
-            }
-            else
-            {
-                connString = connectionName;
-            }
+            connString = GetConnectionString(connectionName);
             try
             {
                 return new SqlConnection(connString);
@@ -196,6 +178,39 @@ namespace AsyncLogging.SqlCommands
             {
                 return null;
             }
+        }
+
+        private static string GetConnectionString(string connectionName)
+        {
+            var connString = "";
+            
+            if (ConfigurationManager.ConnectionStrings.Count > 0
+                && ConfigurationManager.ConnectionStrings[connectionName] != null)
+            {
+                connString = ConfigurationManager.ConnectionStrings[connectionName].ConnectionString;
+            }
+            else
+            {
+                connString = connectionName;
+            }
+
+            return connString;
+        }
+
+        private static string GetAsyncConnectionString(string connectionName)
+        {
+            var connString = GetConnectionString(connectionName);
+            if (string.IsNullOrEmpty(connString))
+            {
+                return connString;
+            }
+
+            if (!connString.ToLower().Contains("asynchronous"))
+            {
+                connString = connString.Trim(';', ' ') + "; Asynchronous Processing=true";
+            }
+
+            return connString;
         }
     }
 }

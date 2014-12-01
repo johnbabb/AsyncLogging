@@ -2,6 +2,7 @@
 namespace AsyncLogging.Loggers.Imp
 {
     using System;
+    using System.Web;
 
     using AsyncLogging.Filters;
     using AsyncLogging.Properties;
@@ -9,25 +10,28 @@ namespace AsyncLogging.Loggers.Imp
 
     public class SqlServerLogger : ILogger
     {
+        private InsertServerRequestLogCommand command;
         
         public void Dispose()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void InitializeRequestHandler(object source, EventArgs e)
         {
             
         }
 
+        public void InitializeRequestHandler(object source, EventArgs e)
+        {
+            command = new InsertServerRequestLogCommand();
+        }
+
         public IAsyncResult BeginRequestAsyncEventHandler(object source, EventArgs e, AsyncCallback cb, object state, OutputFilterStream filter)
         {
-            throw new NotImplementedException();
+            var app = source as HttpApplication;
+            var logData = LoggerHelper.InitializeServerRequestLog(app, filter);
+            return this.command.BeginExecuteNonQuery(cb, state, logData);
         }
 
         public void EndRequestAsyncEventHandler(IAsyncResult ar)
         {
-            throw new NotImplementedException();
+            this.command.EndExecuteNonQuery(ar);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace AsyncLogging.Tests.SqlCommands
     using NUnit.Framework;
 
     [TestFixture]
-    public class InsertServerRequestLogCommandTests
+    public class InsertServerRequestLogCommandTests : BaseTest
     {
         private InsertServerRequestLogCommandFixture classUnderTest;
 
@@ -36,14 +36,11 @@ namespace AsyncLogging.Tests.SqlCommands
                 command.ExecuteNonQuery();
                 connection.Close();
             }
-
-            SaveConfig("SqlInsertStatment", null);
         }
 
         [SetUp]
         public void SetUp()
-        {
-            SaveConfig("SqlInsertStatment", null);
+        {            
         }
 
         [Test]
@@ -60,7 +57,6 @@ namespace AsyncLogging.Tests.SqlCommands
         [TestCase("RSAudit")]
         public void GivenAValidConnectionStringOrName_ThenTheInsertCommandWillExecute(string connectionNameOrString)
         {
-            SaveConfig("SqlInsertStatment", null);
             var expected = 1;
             
             var insertCommandSql = @"

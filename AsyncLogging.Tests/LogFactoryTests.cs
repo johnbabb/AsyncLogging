@@ -8,7 +8,7 @@
     using NUnit.Framework;
 
     [TestFixture]
-    public class LogFactoryTests
+    public class LogFactoryTests : BaseTest
     {
 
         [SetUp]
