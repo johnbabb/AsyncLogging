@@ -30,10 +30,15 @@ namespace AsyncLogging.Helpers
             return app.Request.UserHostAddress;
         }
 
-
         public static string GetDocumentContents(HttpRequest Request)
         {
             string documentContents;
+
+            if (Request == null || Request.InputStream == null)
+            {
+                return string.Empty;
+            }
+
             using (Stream receiveStream = Request.InputStream)
             {
                 using (StreamReader readStream = new StreamReader(receiveStream, Request.ContentEncoding))
@@ -46,9 +51,21 @@ namespace AsyncLogging.Helpers
 
         public static bool IsLoggingContentType(HttpRequest request, string contentTypes)
         {
-            if (Regex.IsMatch(request.ContentType, contentTypes, RegexOptions.IgnoreCase))
+           if (contentTypes == "*")
             {
                 return true;
+            }
+
+            try
+            {
+                if (Regex.IsMatch(request.ContentType, contentTypes, RegexOptions.IgnoreCase))
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
             }
 
             return false;
@@ -56,9 +73,20 @@ namespace AsyncLogging.Helpers
 
         public static bool IsLoggingStatusCode(HttpResponse response, string statusCodes)
         {
-            if (Regex.IsMatch(response.StatusCode.ToString(), statusCodes))
+            if (statusCodes == "*")
             {
                 return true;
+            }
+            try
+            {
+                if (Regex.IsMatch(response.StatusCode.ToString(), statusCodes))
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;    
             }
             return false;
         }

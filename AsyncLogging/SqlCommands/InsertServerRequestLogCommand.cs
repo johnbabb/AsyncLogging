@@ -4,6 +4,7 @@ namespace AsyncLogging.SqlCommands
     using System.Configuration;
     using System.Data;
     using System.Data.SqlClient;
+    using System.Runtime.Remoting.Messaging;
     using System.Threading.Tasks;
 
     using AsyncLogging.Loggers;
@@ -115,7 +116,7 @@ namespace AsyncLogging.SqlCommands
                 }
             }
 
-            return null;
+            return Task<int>.Factory.StartNew(() => -1);
         }
 
         public void EndExecuteNonQuery(IAsyncResult result)

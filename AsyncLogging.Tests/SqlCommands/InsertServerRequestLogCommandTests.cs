@@ -153,16 +153,20 @@ namespace AsyncLogging.Tests.SqlCommands
                 ResponseCode = 200
             };
             var result = this.classUnderTest.BeginExecuteNonQuery(log) as Task<int>;
+            this.classUnderTest.EndExecuteNonQuery(result);
             actual = result.Result;
+            Assert.AreEqual(expected, actual);
+
+            actual = this.classUnderTest.GetRowCount();
             Assert.AreEqual(expected, actual);
         }
 
         [Test]
-        public void GivenAValidCommand_ThenInsertAsync_ShouldReturnNegativeOneRowAffected()
+        public void GivenABadConnection_ThenInsertAsync_ShouldReturnNegativeOneRowAffected()
         {
-            var expected = 1;
+            var expected = -1;
             var actual = 0;
-            this.classUnderTest = new InsertServerRequestLogCommandFixture();
+            this.classUnderTest = new InsertServerRequestLogCommandFixture("abc123","abc123");
             var log = new ServerRequestLog()
             {
                 Host = "host",
@@ -176,7 +180,35 @@ namespace AsyncLogging.Tests.SqlCommands
                 ResponseCode = 200
             };
             var result = this.classUnderTest.BeginExecuteNonQuery(log) as Task<int>;
+            this.classUnderTest.EndExecuteNonQuery(result);
             actual = result.Result;
+            Assert.AreEqual(expected, actual);
+
+            actual = this.classUnderTest.GetRowCount();
+            Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void GivenBadData_ThenInsertAsync_ShouldReturnNegativeOneRowAffected()
+        {
+            var expected = -1;
+            var actual = 0;
+            this.classUnderTest = new InsertServerRequestLogCommandFixture();
+            var log = new ServerRequestLog();
+            //{
+            //    Host = "host",
+            //    RequestBody = "body",
+            //    RequestBy = "jxb15",
+            //    RequestDate = this.CurrentDate,
+            //    RequestDateInTicks = this.CurrentDate.Ticks,
+            //    RequestMethod = "GET",
+            //    RequestUrl = "URL",
+            //    ResponseBody = "body",
+            //    ResponseCode = 200
+            //};
+            var result = this.classUnderTest.BeginExecuteNonQuery(log) as Task<int>;
+            this.classUnderTest.EndExecuteNonQuery(result);
+            actual = this.classUnderTest.GetRowCount();
             Assert.AreEqual(expected, actual);
         }
     }
