@@ -10,13 +10,6 @@
     [TestFixture]
     public class LogFactoryTests : BaseTest
     {
-
-        [SetUp]
-        public void SetUp()
-        {
-            
-        }
-
         [Test]
         [TestCase("SqlServer")]
         [TestCase("File")]

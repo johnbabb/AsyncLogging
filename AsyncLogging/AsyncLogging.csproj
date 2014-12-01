@@ -43,10 +43,9 @@
   <ItemGroup>
     <Compile Include="AsyncConfig.cs" />
     <Compile Include="AsyncLogHandler.cs" />
-    <Compile Include="Helpers\ServerRequestLogHelper.cs" />
     <Compile Include="Loggers\ILogger.cs" />
     <Compile Include="LogFactory.cs" />
-    <Compile Include="Loggers\LoggerHelper.cs" />
+    <Compile Include="Helpers\LoggerHelper.cs" />
     <Compile Include="SqlCommands\InsertServerRequestLogCommand.cs" />
     <Compile Include="Loggers\Imp\FileLogger.cs" />
     <Compile Include="ServerRequestLog.cs" />

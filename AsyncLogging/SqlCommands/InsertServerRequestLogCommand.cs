@@ -4,13 +4,15 @@ namespace AsyncLogging.SqlCommands
     using System.Configuration;
     using System.Data;
     using System.Data.SqlClient;
+    using System.Threading.Tasks;
 
     using AsyncLogging.Loggers;
     using AsyncLogging.Properties;
 
     public class InsertServerRequestLogCommand
     {
-        
+
+        private delegate void InsertInfoDelegate(int rows);
 
         private string connectionName;
 
@@ -87,7 +89,7 @@ namespace AsyncLogging.SqlCommands
             return result;
         }
 
-        public IAsyncResult BeginExecuteNonQuery(AsyncCallback callback, Object stateObject, ServerRequestLog logData)
+        public IAsyncResult BeginExecuteNonQuery(ServerRequestLog logData)
         {
             SqlCommand command = null;
             try
@@ -98,7 +100,7 @@ namespace AsyncLogging.SqlCommands
                 command = this.GetInsertCommand(logData, this.connection);
                 this.connection.Open();
 
-                return command.BeginExecuteNonQuery(callback, command);
+                return command.ExecuteNonQueryAsync();
 
             }
             catch (Exception ex)
@@ -118,24 +120,25 @@ namespace AsyncLogging.SqlCommands
 
         public void EndExecuteNonQuery(IAsyncResult result)
         {
+            var rowCount = 0;
             try
             {
-                var command = (SqlCommand)result.AsyncState;
-                int rowCount = command.EndExecuteNonQuery(result);
+                var command = result as Task<int>;
+                rowCount = command.Result;
 
             }
             catch (Exception ex)
             {
-                //do nothing
+                rowCount = -1;
             }
-            finally
+            
+            if (connection != null)
             {
-                if (connection != null)
-                {
-                    connection.Close();
-                }
+                connection.Close();
+                connection.Dispose();
             }
-
+            
+            this.SetRowRount(rowCount);
         }
 
         protected string GetInsertCommandSql()
@@ -211,6 +214,17 @@ namespace AsyncLogging.SqlCommands
             }
 
             return connString;
+        }
+
+        private int _rowCount = 0;
+        private void SetRowRount(int rowCount)
+        {
+            _rowCount = rowCount;
+        }
+
+        public int GetRowCount()
+        {
+            return _rowCount;
         }
     }
 }

@@ -5,6 +5,7 @@ namespace AsyncLogging
     using System.Web;
 
     using AsyncLogging.Filters;
+    using AsyncLogging.Helpers;
     using AsyncLogging.Loggers;
     
 

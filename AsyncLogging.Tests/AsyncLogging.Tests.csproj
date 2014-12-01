@@ -48,7 +48,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Fixtures\InsertServerRequestLogCommandFixture.cs" />
     <Compile Include="BaseTest.cs" />
-    <Compile Include="SqlCommands\InsertServerRequestLogCommandSqlConifgTests.cs" />
     <Compile Include="SqlCommands\InsertServerRequestLogCommandTests.cs" />
   </ItemGroup>
   <ItemGroup>

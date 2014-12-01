@@ -1,5 +1,5 @@
 ﻿
-namespace AsyncLogging.Loggers
+namespace AsyncLogging.Helpers
 {
     using System;
     using System.IO;
@@ -7,6 +7,7 @@ namespace AsyncLogging.Loggers
     using System.Web;
 
     using AsyncLogging.Filters;
+    using AsyncLogging.Loggers;
 
     public static class LoggerHelper
     {

@@ -6,8 +6,11 @@ namespace AsyncLogging.Tests.SqlCommands
     using System.Data.SqlClient;
     using System.IO;
     using System.Reflection;
+    using System.Threading.Tasks;
     using System.Xml;
 
+    using AsyncLogging.Filters;
+    using AsyncLogging.Helpers;
     using AsyncLogging.Loggers;
     using AsyncLogging.SqlCommands;
 
@@ -42,6 +45,22 @@ namespace AsyncLogging.Tests.SqlCommands
         public void SetUp()
         {            
         }
+
+        [Test]
+        public void GivenASqlInsertCommandIsInTheConfigurationFile_ThenUseThisValueForInsert()
+        {
+            var orgValue = AsyncConfig.SqlInsertStatement;
+            var expected = "print('hi momm')";
+            AsyncConfig.Settings.TryUpdate("SqlInsertStatement", expected, AsyncConfig.SqlInsertStatement);
+
+            this.classUnderTest = new InsertServerRequestLogCommandFixture("RSAudit", "select 1");
+
+            var actual = this.classUnderTest.GetBaseInsertCommandSql();
+
+            Assert.AreEqual(expected, actual);
+
+            AsyncConfig.Settings.TryUpdate("SqlInsertStatement", orgValue, AsyncConfig.SqlInsertStatement);
+        }  
 
         [Test]
         public void GivenAInvalidConnectionName_ThenTheInsertCommandWillFailGracefully()
@@ -114,58 +133,51 @@ namespace AsyncLogging.Tests.SqlCommands
             var actual = this.classUnderTest.Execute(log);
             Assert.AreEqual(expected, actual);
         }
-
-        private void SaveConfig(string key, string value)
+        
+        [Test]
+        public void GivenAValidCommand_ThenInsertAsync_ShouldReturnOneRowAffected()
         {
-            var config = ConfigurationManager.OpenExeConfiguration(Path.Combine(AssemblyDirectory, Assembly.GetExecutingAssembly().ManifestModule.Name));
-            var applicationSectionGroup = config.GetSectionGroup("applicationSettings");
-            var applicationConfigSection = applicationSectionGroup.Sections["AsyncLogging.Properties.Settings"];
-            var clientSection = (ClientSettingsSection)applicationConfigSection;
-
-            var applicationSetting = clientSection.Settings.Get(key);
-            
-            applicationSetting.Value.ValueXml.InnerText = value;    
-            
-            applicationConfigSection.SectionInformation.ForceSave = true;
-
-            config.Save();
-
-            config.Save(ConfigurationSaveMode.Modified);
-            ConfigurationManager.RefreshSection("applicationSettings/AsyncLogging.Properties.Settings");
-            ConfigurationManager.RefreshSection("AppSettings");
+            var expected = 1;
+            var actual = 0;
+            this.classUnderTest = new InsertServerRequestLogCommandFixture();
+            var log = new ServerRequestLog()
+            {
+                Host = "host",
+                RequestBody = "body",
+                RequestBy = "jxb15",
+                RequestDate = this.CurrentDate,
+                RequestDateInTicks = this.CurrentDate.Ticks,
+                RequestMethod = "GET",
+                RequestUrl = "URL",
+                ResponseBody = "body",
+                ResponseCode = 200
+            };
+            var result = this.classUnderTest.BeginExecuteNonQuery(log) as Task<int>;
+            actual = result.Result;
+            Assert.AreEqual(expected, actual);
         }
 
-        private static string AssemblyDirectory
+        [Test]
+        public void GivenAValidCommand_ThenInsertAsync_ShouldReturnNegativeOneRowAffected()
         {
-            get
+            var expected = 1;
+            var actual = 0;
+            this.classUnderTest = new InsertServerRequestLogCommandFixture();
+            var log = new ServerRequestLog()
             {
-                string codeBase = Assembly.GetExecutingAssembly().CodeBase;
-                UriBuilder uri = new UriBuilder(codeBase);
-                string path = Uri.UnescapeDataString(uri.Path);
-                return Path.GetDirectoryName(path);
-            }
-        }
-
-        private SqlConnection GetSqlConnection(string connectionName)
-        {
-            var connString = "";
-
-            if (ConfigurationManager.ConnectionStrings.Count > 0 && ConfigurationManager.ConnectionStrings[connectionName] != null)
-            {
-                connString = ConfigurationManager.ConnectionStrings[connectionName].ConnectionString;
-            }
-            else
-            {
-                connString = connectionName;
-            }
-            try
-            {
-                return new SqlConnection(connString);
-            }
-            catch
-            {
-                return null;
-            }
+                Host = "host",
+                RequestBody = "body",
+                RequestBy = "jxb15",
+                RequestDate = this.CurrentDate,
+                RequestDateInTicks = this.CurrentDate.Ticks,
+                RequestMethod = "GET",
+                RequestUrl = "URL",
+                ResponseBody = "body",
+                ResponseCode = 200
+            };
+            var result = this.classUnderTest.BeginExecuteNonQuery(log) as Task<int>;
+            actual = result.Result;
+            Assert.AreEqual(expected, actual);
         }
     }
 }

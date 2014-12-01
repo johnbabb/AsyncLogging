@@ -6,6 +6,7 @@
     using System.Web;
 
     using AsyncLogging.Filters;
+    using AsyncLogging.Helpers;
 
     public class FileLogger : ILogger
     {
