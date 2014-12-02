@@ -27,7 +27,7 @@ namespace AsyncLogging.Loggers.Imp
         {
             var app = source as HttpApplication;
             var logData = LoggerHelper.InitializeServerRequestLog(app, filter);
-            return this.command.BeginExecuteNonQuery(logData);
+            return this.command.BeginExecuteNonQuery(cb, state, logData);
         }
 
         public void EndRequestAsyncEventHandler(IAsyncResult ar)

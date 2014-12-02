@@ -69,13 +69,10 @@ namespace AsyncLogging
                 {
                     return false;
                 }
-
-                if (_settings.FirstOrDefault(w => w.Key == "Enabled").Value.ToLower() == "false")
-                {
-                    return false;
-                }
-
-                return true;
+                var strEnabled = _settings.FirstOrDefault(w => w.Key == "Enabled").Value;
+                bool isEnabled;
+                bool.TryParse(strEnabled, out isEnabled);
+                return isEnabled;
             }
         }
 

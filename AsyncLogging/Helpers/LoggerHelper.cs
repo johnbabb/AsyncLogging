@@ -49,6 +49,39 @@ namespace AsyncLogging.Helpers
             return documentContents;
         }
 
+        public static bool IsLoggingApplication(HttpApplication application)
+        {
+            if (application != null && LoggerHelper.IsLoggingContentType(application.Response, AsyncConfig.ContentTypes)
+                && LoggerHelper.IsLoggingStatusCode(application.Response, AsyncConfig.StatusCodes))
+            {
+                return true;
+            }
+
+            return false;
+        }
+        
+        public static bool IsLoggingContentType(HttpResponse response, string contentTypes)
+        {
+            if (contentTypes == "*")
+            {
+                return true;
+            }
+
+            try
+            {
+                if (Regex.IsMatch(response.ContentType, contentTypes, RegexOptions.IgnoreCase))
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+
+            return false;
+        }
+
         public static bool IsLoggingContentType(HttpRequest request, string contentTypes)
         {
            if (contentTypes == "*")

@@ -7,6 +7,7 @@ namespace AsyncLogging.SqlCommands
     using System.Runtime.Remoting.Messaging;
     using System.Threading.Tasks;
 
+    using AsyncLogging.Extensions;
     using AsyncLogging.Loggers;
     using AsyncLogging.Properties;
 
@@ -89,26 +90,26 @@ namespace AsyncLogging.SqlCommands
                     command.Dispose();
                 }
             }
-            catch (Exception)
-            {
-                result = -1;
+            catch (Exception ex)
+            {                
+                throw;
             }
             
             return result;
         }
 
-        public IAsyncResult BeginExecuteNonQuery(ServerRequestLog logData)
+        public IAsyncResult BeginExecuteNonQuery(AsyncCallback cb, object state, ServerRequestLog logData)
         {
             SqlCommand command = null;
             try
             {
-                this.connection = new SqlConnection(GetAsyncConnectionString(this.connectionName));
+                this.connection = new SqlConnection(GetConnectionString(this.connectionName));
 
 
                 command = this.GetInsertCommand(logData, this.connection);
                 this.connection.Open();
 
-                return command.ExecuteNonQueryAsync();
+                return command.ExecuteNonQueryAsync().ToApm(cb, state);
 
             }
             catch (Exception ex)
@@ -121,9 +122,8 @@ namespace AsyncLogging.SqlCommands
                 {
                     command.Dispose();
                 }
+                throw;
             }
-
-            return Task<int>.Factory.StartNew(() => -1);
         }
 
         public void EndExecuteNonQuery(IAsyncResult result)
@@ -138,14 +138,14 @@ namespace AsyncLogging.SqlCommands
             catch (Exception ex)
             {
                 rowCount = -1;
+                if (connection != null)
+                {
+                    connection.Close();
+                    connection.Dispose();
+                }
+
+                throw;
             }
-            
-            if (connection != null)
-            {
-                connection.Close();
-                connection.Dispose();
-            }
-            
             this.SetRowRount(rowCount);
         }
 
@@ -185,10 +185,12 @@ namespace AsyncLogging.SqlCommands
             try
             {
                 return new SqlConnection(connString);
-            } catch
-            {
-                return null;
             }
+            catch (Exception ex)
+            {
+                throw;
+            }
+            return null;
         }
 
         private static string GetConnectionString(string connectionName)
@@ -203,22 +205,6 @@ namespace AsyncLogging.SqlCommands
             else
             {
                 connString = connectionName;
-            }
-
-            return connString;
-        }
-
-        private static string GetAsyncConnectionString(string connectionName)
-        {
-            var connString = GetConnectionString(connectionName);
-            if (string.IsNullOrEmpty(connString))
-            {
-                return connString;
-            }
-
-            if (!connString.ToLower().Contains("asynchronous"))
-            {
-                connString = connString.Trim(';', ' ') + "; Asynchronous Processing=true";
             }
 
             return connString;

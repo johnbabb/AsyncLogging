@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="AsyncConfig.cs" />
     <Compile Include="AsyncLogHandler.cs" />
+    <Compile Include="Extensions\TaskExtensions.cs" />
     <Compile Include="Loggers\ILogger.cs" />
     <Compile Include="LogFactory.cs" />
     <Compile Include="Helpers\LoggerHelper.cs" />
