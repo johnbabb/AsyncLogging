@@ -133,6 +133,19 @@ namespace AsyncLogging.Tests.SqlCommands
             var actual = this.classUnderTest.Execute(log);
             Assert.AreEqual(expected, actual);
         }
+
+        [Test]
+        public void GivenAEmptyServerRequestLogObject_ThenTheInsertCommandWillFailGracefully()
+        {
+            var expected = -1;
+
+            this.classUnderTest = new InsertServerRequestLogCommandFixture();
+
+            var log = new ServerRequestLog();
+
+            var actual = this.classUnderTest.Execute(log);
+            Assert.AreEqual(expected, actual);
+        }
         
         [Test]
         public void GivenAValidCommand_ThenInsertAsync_ShouldReturnOneRowAffected()

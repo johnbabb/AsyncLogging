@@ -18,7 +18,9 @@
       <Value Profile="(Default)">200|500|600</Value>
     </Setting>
     <Setting Name="SqlInsertStatement" Type="System.String" Scope="Application">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">INSERT [ServerRequestLogs]
+            ([RequestDate],[RequestDateInTicks],[RequestBy],[RequestMethod],[RequestUrl],[RequestBody],[ResponseCode],[ResponseBody],[Host],[CreatedOn])
+            VALUES(@RequestDate,@RequestDateInTicks,@RequestBy,@RequestMethod,@RequestUrl,@RequestBody,@ResponseCode,@ResponseBody,@Host,@CreatedOn)</Value>
     </Setting>
     <Setting Name="ContentTypes" Type="System.String" Scope="Application">
       <Value Profile="(Default)">json|xml|html|text</Value>

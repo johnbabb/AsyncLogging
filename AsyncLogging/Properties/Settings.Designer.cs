@@ -70,7 +70,9 @@ namespace AsyncLogging.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"INSERT [ServerRequestLogs]
+            ([RequestDate],[RequestDateInTicks],[RequestBy],[RequestMethod],[RequestUrl],[RequestBody],[ResponseCode],[ResponseBody],[Host],[CreatedOn])
+            VALUES(@RequestDate,@RequestDateInTicks,@RequestBy,@RequestMethod,@RequestUrl,@RequestBody,@ResponseCode,@ResponseBody,@Host,@CreatedOn)")]
         public string SqlInsertStatement {
             get {
                 return ((string)(this["SqlInsertStatement"]));

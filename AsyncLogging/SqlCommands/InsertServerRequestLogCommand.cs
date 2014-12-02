@@ -74,19 +74,26 @@ namespace AsyncLogging.SqlCommands
         {
             int result = 0;
 
-            using (var connection = this.GetSqlConnection(this.connectionName))
+            try
             {
-                if (connection == null)
+                using (var connection = this.GetSqlConnection(this.connectionName))
                 {
-                    return result;
+                    if (connection == null)
+                    {
+                        return result;
+                    }
+                    var command = this.GetInsertCommand(obj, connection);
+                    command.Connection.Open();
+                    result = command.ExecuteNonQuery();
+                    command.Connection.Close();
+                    command.Dispose();
                 }
-                var command = this.GetInsertCommand(obj, connection);
-                command.Connection.Open();
-                result = command.ExecuteNonQuery();
-                command.Connection.Close();
-                command.Dispose();
             }
-
+            catch (Exception)
+            {
+                result = -1;
+            }
+            
             return result;
         }
 
