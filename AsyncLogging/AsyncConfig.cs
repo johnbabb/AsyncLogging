@@ -100,6 +100,22 @@ namespace AsyncLogging
             }
         }
 
+        public static string CreateTableScript
+        {
+            get
+            {
+                return _settings.FirstOrDefault(w => w.Key == "CreateTableScript").Value;
+            }
+        }
+
+        public static string DefaultInsertSql
+        {
+            get
+            {
+                return _settings.FirstOrDefault(w => w.Key == "DefaultInsertSql").Value;
+            }
+        }
+
         public static void InitializeSettings()
         {
             Settings.GetOrAdd("LoggerType", Properties.Settings.Default.LoggerType);
@@ -109,6 +125,26 @@ namespace AsyncLogging
             Settings.GetOrAdd("StatusCodes", Properties.Settings.Default.StatusCodes);
             Settings.GetOrAdd("SqlInsertStatement", Properties.Settings.Default.SqlInsertStatement);
             Settings.GetOrAdd("ContentTypes", Properties.Settings.Default.ContentTypes);
+            Settings.GetOrAdd("CreateTableScript", @"CREATE TABLE [dbo].[ServerRequestLogs](
+	                                                [ServerRequestLogId] [int] IDENTITY(1,1) NOT NULL,
+	                                                [RequestDate] [datetime] NOT NULL,
+	                                                [RequestBy] [varchar](50) NOT NULL,
+	                                                [RequestMethod] [varchar](10) NOT NULL,
+	                                                [RequestUrl] [nvarchar](2000) NOT NULL,
+	                                                [RequestBody] [nvarchar](4000) NULL,
+	                                                [ResponseCode] [int] NOT NULL,
+	                                                [ResponseBody] [nvarchar](4000) NOT NULL,
+	                                                [Host] [varchar](250) NOT NULL,
+                                                 CONSTRAINT [PK_IISServerLog] PRIMARY KEY CLUSTERED 
+                                                (
+	                                                [ServerRequestLogId] ASC
+                                                )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+                                                ) ON [PRIMARY]");
+            
+            Settings.GetOrAdd("DefaultInsertSql",@"INSERT [ServerRequestLogs]
+                                              ([RequestDate],[RequestBy],[RequestMethod],[RequestUrl],[RequestBody],[ResponseCode],[ResponseBody],[Host])
+                                              VALUES(@RequestDate,@RequestBy,@RequestMethod,@RequestUrl,@RequestBody,@ResponseCode,@ResponseBody,@Host)");
+
         }
     }
 }

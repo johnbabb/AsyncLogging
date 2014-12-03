@@ -18,11 +18,7 @@ namespace AsyncLogging.SqlCommands
 
         private string connectionName;
 
-        private string sqlInsertStatment = @"
-            INSERT [ServerRequestLogs]
-            ([RequestDate],[RequestBy],[RequestMethod],[RequestUrl],[RequestBody],[ResponseCode],[ResponseBody],[Host])
-            VALUES(@RequestDate,@RequestBy,@RequestMethod,@RequestUrl,@RequestBody,@ResponseCode,@ResponseBody,@Host)
-            ";
+        private string sqlInsertStatment = AsyncConfig.DefaultInsertSql;
 
         protected SqlConnection connection;
 
