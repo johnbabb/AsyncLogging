@@ -46,15 +46,13 @@ SQL Server config
 	<!-- 
 	Regex support to filter logs based on response codes
 	Examples:
-		<value>200|500|600</value> 200 OR 500 OR 600
+		<value>json|xml|html|text</value> only a response the matches string part json, xml, html, or text
 		<value>*</value> -> ALL
 		<value></value> -> ALL
 		<value>.*</value> -> ALL
 	-->
       <setting name="ContentTypes" serializeAs="String">
         <value>json|xml|html|text</value>
-	<!-- all <value>*</value>-->
-	<!-- all <value>.*</value>-->
       </setting>
     </AsyncLogging.Properties.Settings>
   </applicationSettings>
