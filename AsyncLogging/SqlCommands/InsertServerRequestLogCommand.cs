@@ -159,7 +159,7 @@ namespace AsyncLogging.SqlCommands
         {
             var command = new SqlCommand(this.GetInsertCommandSql(), connection);
 
-            command.Parameters.Add("@RequestDate", SqlDbType.DateTime).Value = obj.RequestDate;
+            command.Parameters.Add("@RequestTime", SqlDbType.DateTime).Value = obj.RequestTime;
             command.Parameters.Add("@RequestBy", SqlDbType.VarChar).Value = obj.RequestBy;
             command.Parameters.Add("@RequestMethod", SqlDbType.VarChar).Value = obj.RequestMethod;
             command.Parameters.Add("@RequestUrl", SqlDbType.NVarChar).Value = obj.RequestUrl;

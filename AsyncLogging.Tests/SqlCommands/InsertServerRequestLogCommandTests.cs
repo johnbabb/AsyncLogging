@@ -2,19 +2,10 @@
 namespace AsyncLogging.Tests.SqlCommands
 {
     using System;
-    using System.Configuration;
     using System.Data.SqlClient;
-    using System.IO;
-    using System.Reflection;
     using System.Threading.Tasks;
-    using System.Xml;
-
-    using AsyncLogging.Extensions;
-    using AsyncLogging.Filters;
-    using AsyncLogging.Helpers;
     using AsyncLogging.Loggers;
-    using AsyncLogging.SqlCommands;
-
+   
     using NUnit.Framework;
 
     [TestFixture]
@@ -35,13 +26,7 @@ namespace AsyncLogging.Tests.SqlCommands
         [TestFixtureTearDown]
         public void TestFixtureTearDown()
         {
-            using (var connection = this.GetSqlConnection("RSAudit"))
-            {
-                connection.Open();
-                var command = new SqlCommand("delete from ServerRequestLogs where RequestDate >= '" + this.CurrentDate + "'", connection);
-                command.ExecuteNonQuery();
-                connection.Close();
-            }
+            this.CleanUpData("RSAudit");
         }
 
         [SetUp]
@@ -80,7 +65,7 @@ namespace AsyncLogging.Tests.SqlCommands
             var expected = 1;
 
             var insertCommandSql = @"
-                    Select @RequestDate 'RequestDate'
+                    Select @RequestTime 'RequestTime'
                         ,@RequestBy 'RequestBy'
                         ,@RequestMethod 'RequestMethod'
                         ,@RequestUrl 'RequestUrl'
@@ -97,7 +82,7 @@ namespace AsyncLogging.Tests.SqlCommands
                 Host = "host",
                 RequestBody = "body",
                 RequestBy = "jxb15",
-                RequestDate = this.CurrentDate,
+                RequestTime = this.CurrentDate,
                 RequestDateInTicks = this.CurrentDate.Ticks,
                 RequestMethod = "GET",
                 RequestUrl = "URL",
@@ -116,7 +101,7 @@ namespace AsyncLogging.Tests.SqlCommands
             var expected = 1;
 
             var insertCommandSql = @"
-                    Select @RequestDate 'RequestDate'
+                    Select @RequestTime 'RequestTime'
                         ,@RequestBy 'RequestBy'
                         ,@RequestMethod 'RequestMethod'
                         ,@RequestUrl 'RequestUrl'
@@ -133,7 +118,7 @@ namespace AsyncLogging.Tests.SqlCommands
                 Host = "host",
                 RequestBody = "body",
                 RequestBy = "jxb15",
-                RequestDate = this.CurrentDate,
+                RequestTime = this.CurrentDate,
                 RequestDateInTicks = this.CurrentDate.Ticks,
                 RequestMethod = "GET",
                 RequestUrl = "URL",
@@ -156,7 +141,7 @@ namespace AsyncLogging.Tests.SqlCommands
                 Host = "host",
                 RequestBody = "body",
                 RequestBy = "jxb15",
-                RequestDate = this.CurrentDate,
+                RequestTime = this.CurrentDate,
                 RequestDateInTicks = this.CurrentDate.Ticks,
                 RequestMethod = "GET",
                 RequestUrl = "URL",
@@ -179,7 +164,7 @@ namespace AsyncLogging.Tests.SqlCommands
                 Host = "host",
                 RequestBody = "body",
                 RequestBy = "jxb15",
-                RequestDate = this.CurrentDate,
+                RequestTime = this.CurrentDate,
                 RequestDateInTicks = this.CurrentDate.Ticks,
                 RequestMethod = "GET",
                 RequestUrl = "URL",
@@ -209,7 +194,7 @@ namespace AsyncLogging.Tests.SqlCommands
                 Host = "host",
                 RequestBody = "body",
                 RequestBy = "jxb15",
-                RequestDate = this.CurrentDate,
+                RequestTime = this.CurrentDate,
                 RequestDateInTicks = this.CurrentDate.Ticks,
                 RequestMethod = "GET",
                 RequestUrl = "URL",
@@ -236,7 +221,7 @@ namespace AsyncLogging.Tests.SqlCommands
             //    Host = "host",
             //    RequestBody = "body",
             //    RequestBy = "jxb15",
-            //    RequestDate = this.CurrentDate,
+            //    RequestTime = this.CurrentDate,
             //    RequestDateInTicks = this.CurrentDate.Ticks,
             //    RequestMethod = "GET",
             //    RequestUrl = "URL",
@@ -251,9 +236,55 @@ namespace AsyncLogging.Tests.SqlCommands
                       
         }
 
+        [Test]
+        public void GivenConnectionToDb01_ThenInsertAsync_ShouldReturnOneRowAffected()
+        {
+            var connectionName = "Dbs01";
+            var expected = 1;
+            var actual = 0;
+            this.classUnderTest = new InsertServerRequestLogCommandFixture(connectionName, AsyncConfig.DefaultInsertSql);
+            var log = new ServerRequestLog()
+            {
+                Host = "host",
+                RequestBody = "RequestBody",
+                RequestBy = "jxb15",
+                RequestTime = this.CurrentDate,
+                RequestDateInTicks = this.CurrentDate.Ticks,
+                RequestMethod = "GET",
+                RequestUrl = "URL",
+                ResponseBody = "ResponseBody",
+                ResponseCode = 200
+            };
+            AsyncCallback cb = ar => { };
+            var state = new object();
+
+            var result = this.classUnderTest.BeginExecuteNonQuery(cb, state, log) as Task<int>;
+            this.classUnderTest.EndExecuteNonQuery(result);
+            actual = result.Result;
+            Assert.AreEqual(expected, actual);
+
+            actual = this.classUnderTest.GetRowCount();
+            Assert.AreEqual(expected, actual);
+
+            this.CleanUpData(connectionName);
+        }
+
         private void SetSqlInsertStatement(string value)
         {
             AsyncConfig.Settings.TryUpdate("SqlInsertStatement", value, AsyncConfig.SqlInsertStatement);
+        }
+
+        private void CleanUpData(string connectionName)
+        {
+            using (var connection = this.GetSqlConnection(connectionName))
+            {
+                connection.Open();
+                var command = new SqlCommand(
+                    "delete from ServerRequestLogs where RequestTime = '" + this.CurrentDate + "'",
+                    connection);
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
         }
     }
 }

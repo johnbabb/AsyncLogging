@@ -6,7 +6,7 @@
     {
         public int ServerRequestLogId { get; set; }
 
-        public DateTime RequestDate { get; set; }
+        public DateTime RequestTime { get; set; }
 
         public long RequestDateInTicks { get; set; }
 

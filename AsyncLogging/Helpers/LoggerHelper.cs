@@ -136,7 +136,7 @@ namespace AsyncLogging.Helpers
                            Host = app.Request.Url.Host,
                            RequestBody = strRequest,
                            RequestBy = nameOrAddress,
-                           RequestDate = time,
+                           RequestTime = time,
                            RequestDateInTicks = time.Ticks,
                            RequestMethod = app.Request.HttpMethod,
                            RequestUrl = app.Request.RawUrl,

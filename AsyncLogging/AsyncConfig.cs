@@ -127,7 +127,7 @@ namespace AsyncLogging
             Settings.GetOrAdd("ContentTypes", Properties.Settings.Default.ContentTypes);
             Settings.GetOrAdd("CreateTableScript", @"CREATE TABLE [dbo].[ServerRequestLogs](
 	                                                [ServerRequestLogId] [int] IDENTITY(1,1) NOT NULL,
-	                                                [RequestDate] [datetime] NOT NULL,
+	                                                [RequestTime] [datetime] NOT NULL,
 	                                                [RequestBy] [varchar](50) NOT NULL,
 	                                                [RequestMethod] [varchar](10) NOT NULL,
 	                                                [RequestUrl] [nvarchar](2000) NOT NULL,
@@ -142,8 +142,8 @@ namespace AsyncLogging
                                                 ) ON [PRIMARY]");
             
             Settings.GetOrAdd("DefaultInsertSql",@"INSERT [ServerRequestLogs]
-                                              ([RequestDate],[RequestBy],[RequestMethod],[RequestUrl],[RequestBody],[ResponseCode],[ResponseBody],[Host])
-                                              VALUES(@RequestDate,@RequestBy,@RequestMethod,@RequestUrl,@RequestBody,@ResponseCode,@ResponseBody,@Host)");
+                                              ([RequestTime],[RequestBy],[RequestMethod],[RequestUrl],[RequestBody],[ResponseCode],[ResponseBody],[Host])
+                                              VALUES(@RequestTime,@RequestBy,@RequestMethod,@RequestUrl,@RequestBody,@ResponseCode,@ResponseBody,@Host)");
 
         }
     }

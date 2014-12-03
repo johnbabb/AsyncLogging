@@ -9,3 +9,4 @@ packages/NUnit.2.6.3/lib/nunit.framework.dll
 packages/NUnit.2.6.3/lib/nunit.framework.xml
 packages/NUnit.2.6.3/license.txt
 packages/NUnit.2.6.3/NUnit.2.6.3.nupkg
+AsyncLogging/AsyncLogging.csproj.user
