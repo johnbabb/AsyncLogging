@@ -27,16 +27,34 @@ SQL Server config
       <setting name="Enabled" serializeAs="String">
         <value>false</value>
       </setting>
+      <!-- 
+	Regex support to filter logs based on response codes
+	Examples:
+		<value>200|500|600</value> 200 OR 500 OR 600
+		<value>*</value> -> ALL
+		<value></value> -> ALL
+		<value>.*</value> -> ALL
+	-->
       <setting name="StatusCodes" serializeAs="String">
-        <value>200|500|600</value>
+        <value></value>
       </setting>
       <setting name="SqlInsertStatement" serializeAs="String">
         <value>
           <!--INSERT [ServerRequestLogs]...-->
         </value>
       </setting>
+	<!-- 
+	Regex support to filter logs based on response codes
+	Examples:
+		<value>200|500|600</value> 200 OR 500 OR 600
+		<value>*</value> -> ALL
+		<value></value> -> ALL
+		<value>.*</value> -> ALL
+	-->
       <setting name="ContentTypes" serializeAs="String">
         <value>json|xml|html|text</value>
+	<!-- all <value>*</value>-->
+	<!-- all <value>.*</value>-->
       </setting>
     </AsyncLogging.Properties.Settings>
   </applicationSettings>
