@@ -10,7 +10,7 @@
     {
         public static ILogger Make(string type)
         {
-            var l = (LoggerType)Enum.Parse(typeof(LoggerType), type);
+            var l = (LoggerType)Enum.Parse(typeof(LoggerType), type, true);
             return GetInstance(l) as ILogger;
         }
 

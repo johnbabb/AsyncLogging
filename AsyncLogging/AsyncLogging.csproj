@@ -47,6 +47,7 @@
     <Compile Include="Loggers\ILogger.cs" />
     <Compile Include="LogFactory.cs" />
     <Compile Include="Helpers\LoggerHelper.cs" />
+    <Compile Include="Loggers\Imp\SqlLogger.cs" />
     <Compile Include="SqlCommands\InsertServerRequestLogCommand.cs" />
     <Compile Include="Loggers\Imp\FileLogger.cs" />
     <Compile Include="ServerRequestLog.cs" />

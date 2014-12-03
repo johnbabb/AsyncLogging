@@ -3,6 +3,7 @@
     public enum LoggerType
     {
         SqlServer,
-        File
+        File,
+        Sql
     }
 }
