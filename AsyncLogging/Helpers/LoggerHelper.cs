@@ -74,7 +74,7 @@ namespace AsyncLogging.Helpers
                     return true;
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 return false;
             }
@@ -96,7 +96,7 @@ namespace AsyncLogging.Helpers
                     return true;
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 return false;
             }
@@ -117,7 +117,7 @@ namespace AsyncLogging.Helpers
                     return true;
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 return false;    
             }

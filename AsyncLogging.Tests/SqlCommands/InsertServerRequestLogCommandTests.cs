@@ -9,6 +9,7 @@ namespace AsyncLogging.Tests.SqlCommands
     using System.Threading.Tasks;
     using System.Xml;
 
+    using AsyncLogging.Extensions;
     using AsyncLogging.Filters;
     using AsyncLogging.Helpers;
     using AsyncLogging.Loggers;
@@ -23,6 +24,8 @@ namespace AsyncLogging.Tests.SqlCommands
 
         private DateTime CurrentDate;
 
+        private string OrgSqlInsertStatement = AsyncConfig.SqlInsertStatement;
+
         [TestFixtureSetUp]
         public void TestFixtureSetUp()
         {
@@ -35,7 +38,7 @@ namespace AsyncLogging.Tests.SqlCommands
             using (var connection = this.GetSqlConnection("RSAudit"))
             {
                 connection.Open();
-                var command = new SqlCommand("delete from ServerRequestLogs where RequestDateInTicks = " + this.CurrentDate.Ticks, connection);
+                var command = new SqlCommand("delete from ServerRequestLogs where RequestDate >= '" + this.CurrentDate + "'", connection);
                 command.ExecuteNonQuery();
                 connection.Close();
             }
@@ -43,7 +46,15 @@ namespace AsyncLogging.Tests.SqlCommands
 
         [SetUp]
         public void SetUp()
-        {            
+        {
+            OrgSqlInsertStatement = AsyncConfig.SqlInsertStatement;
+            SetSqlInsertStatement(string.Empty);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            SetSqlInsertStatement(OrgSqlInsertStatement);
         }
 
         [Test]
@@ -63,24 +74,13 @@ namespace AsyncLogging.Tests.SqlCommands
         }  
 
         [Test]
-        public void GivenAInvalidConnectionName_ThenTheInsertCommandWillFailGracefully()
-        {
-            var expected = 0;
-            this.classUnderTest = new InsertServerRequestLogCommandFixture("BlahBlahConnectionName", "print '1';");
-            var actual = this.classUnderTest.Execute(new ServerRequestLog());
-            Assert.AreEqual(expected, actual);
-        }
-
-        [Test]
-        [TestCase("Server=.;Database=RS_DEV;Trusted_Connection=True;MultipleActiveResultSets=true;")]
         [TestCase("RSAudit")]
-        public void GivenAValidConnectionStringOrName_ThenTheInsertCommandWillExecute(string connectionNameOrString)
+        public void GivenAValidConnectionName_ThenTheInsertCommandWillExecute(string connectionNameOrString)
         {
             var expected = 1;
-            
+
             var insertCommandSql = @"
                     Select @RequestDate 'RequestDate'
-                        ,@RequestDateInTicks 'RequestDateInTicks'
                         ,@RequestBy 'RequestBy'
                         ,@RequestMethod 'RequestMethod'
                         ,@RequestUrl 'RequestUrl'
@@ -88,27 +88,61 @@ namespace AsyncLogging.Tests.SqlCommands
                         ,@ResponseCode 'ResponseCode'
                         ,@ResponseBody 'ResponseBody'
                         ,@Host 'Host'
-                        ,@CreatedOn 'CreatedOn'
                      into #temptable; Drop table #temptable";
 
             this.classUnderTest = new InsertServerRequestLogCommandFixture(connectionNameOrString, insertCommandSql);
-            
+
             var log = new ServerRequestLog()
-                          {
-                              Host = "host",
-                              RequestBody = "body",
-                              RequestBy = "jxb15",
-                              RequestDate = this.CurrentDate,
-                              RequestDateInTicks = this.CurrentDate.Ticks,
-                              RequestMethod = "GET",
-                              RequestUrl = "URL",
-                              ResponseBody = "body",
-                              ResponseCode = 200
-                          };
+            {
+                Host = "host",
+                RequestBody = "body",
+                RequestBy = "jxb15",
+                RequestDate = this.CurrentDate,
+                RequestDateInTicks = this.CurrentDate.Ticks,
+                RequestMethod = "GET",
+                RequestUrl = "URL",
+                ResponseBody = "body",
+                ResponseCode = 200
+            };
 
             var actual = this.classUnderTest.Execute(log);
             Assert.AreEqual(expected, actual);
-        }       
+        }
+
+        [Test]
+        [TestCase("aaaSteve")]
+        public void GivenAnInvalidConnectionName_ThenTheInsertCommandWillThrowException(string connectionNameOrString)
+        {
+            var expected = 1;
+
+            var insertCommandSql = @"
+                    Select @RequestDate 'RequestDate'
+                        ,@RequestBy 'RequestBy'
+                        ,@RequestMethod 'RequestMethod'
+                        ,@RequestUrl 'RequestUrl'
+                        ,@RequestBody 'RequestBody'
+                        ,@ResponseCode 'ResponseCode'
+                        ,@ResponseBody 'ResponseBody'
+                        ,@Host 'Host'
+                     into #temptable; Drop table #temptable";
+
+            this.classUnderTest = new InsertServerRequestLogCommandFixture(connectionNameOrString, insertCommandSql);
+
+            var log = new ServerRequestLog()
+            {
+                Host = "host",
+                RequestBody = "body",
+                RequestBy = "jxb15",
+                RequestDate = this.CurrentDate,
+                RequestDateInTicks = this.CurrentDate.Ticks,
+                RequestMethod = "GET",
+                RequestUrl = "URL",
+                ResponseBody = "body",
+                ResponseCode = 200
+            };
+            var ex = Assert.Throws<ArgumentException>(() => this.classUnderTest.Execute(log));
+            Assert.True(ex.Message.Contains(connectionNameOrString));
+        }
 
         [Test]
         public void GivenAValidServerRequestLogObject_ThenTheInsertCommandWillInsert()
@@ -133,20 +167,7 @@ namespace AsyncLogging.Tests.SqlCommands
             var actual = this.classUnderTest.Execute(log);
             Assert.AreEqual(expected, actual);
         }
-
-        [Test]
-        public void GivenAEmptyServerRequestLogObject_ThenTheInsertCommandWillFailGracefully()
-        {
-            var expected = -1;
-
-            this.classUnderTest = new InsertServerRequestLogCommandFixture();
-
-            var log = new ServerRequestLog();
-
-            var actual = this.classUnderTest.Execute(log);
-            Assert.AreEqual(expected, actual);
-        }
-        
+ 
         [Test]
         public void GivenAValidCommand_ThenInsertAsync_ShouldReturnOneRowAffected()
         {
@@ -165,7 +186,10 @@ namespace AsyncLogging.Tests.SqlCommands
                 ResponseBody = "body",
                 ResponseCode = 200
             };
-            var result = this.classUnderTest.BeginExecuteNonQuery(log) as Task<int>;
+            AsyncCallback cb = ar => { };
+            var state = new object();
+
+            var result = this.classUnderTest.BeginExecuteNonQuery(cb, state, log) as Task<int>;
             this.classUnderTest.EndExecuteNonQuery(result);
             actual = result.Result;
             Assert.AreEqual(expected, actual);
@@ -175,7 +199,7 @@ namespace AsyncLogging.Tests.SqlCommands
         }
 
         [Test]
-        public void GivenABadConnection_ThenInsertAsync_ShouldReturnNegativeOneRowAffected()
+        public void GivenABadConnection_ThenInsertAsync_ShouldThorwArgumentException()
         {
             var expected = -1;
             var actual = 0;
@@ -192,17 +216,17 @@ namespace AsyncLogging.Tests.SqlCommands
                 ResponseBody = "body",
                 ResponseCode = 200
             };
-            var result = this.classUnderTest.BeginExecuteNonQuery(log) as Task<int>;
-            this.classUnderTest.EndExecuteNonQuery(result);
-            actual = result.Result;
-            Assert.AreEqual(expected, actual);
+            
+            AsyncCallback cb = ar => { };
+            var state = new object();
+            Task<int> result = Task<int>.Factory.StartNew(() => -1);
+            
 
-            actual = this.classUnderTest.GetRowCount();
-            Assert.AreEqual(expected, actual);
+            var ex = Assert.Throws<ArgumentException>(() => result = this.classUnderTest.BeginExecuteNonQuery(cb, state, log) as Task<int>);
         }
 
         [Test]
-        public void GivenBadData_ThenInsertAsync_ShouldReturnNegativeOneRowAffected()
+        public void GivenBadData_ThenInsertAsync_ShouldThorwAggregateException()
         {
             var expected = -1;
             var actual = 0;
@@ -219,10 +243,17 @@ namespace AsyncLogging.Tests.SqlCommands
             //    ResponseBody = "body",
             //    ResponseCode = 200
             //};
-            var result = this.classUnderTest.BeginExecuteNonQuery(log) as Task<int>;
-            this.classUnderTest.EndExecuteNonQuery(result);
-            actual = this.classUnderTest.GetRowCount();
-            Assert.AreEqual(expected, actual);
+            Task<int> result = Task<int>.Factory.StartNew(() => -1);
+            AsyncCallback cb = ar => { };
+            var state = new object();
+            result = this.classUnderTest.BeginExecuteNonQuery(cb, state, log) as Task<int>;
+            var ex = Assert.Throws<AggregateException>(() => this.classUnderTest.EndExecuteNonQuery(result));
+                      
+        }
+
+        private void SetSqlInsertStatement(string value)
+        {
+            AsyncConfig.Settings.TryUpdate("SqlInsertStatement", value, AsyncConfig.SqlInsertStatement);
         }
     }
 }

@@ -25,7 +25,7 @@ namespace AsyncLogging.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("File")]
+        [global::System.Configuration.DefaultSettingValueAttribute("SqlServer")]
         public string LoggerType {
             get {
                 return ((string)(this["LoggerType"]));
@@ -34,7 +34,7 @@ namespace AsyncLogging.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("RsAudit")]
+        [global::System.Configuration.DefaultSettingValueAttribute("AuditEntities")]
         public string ConnectionName {
             get {
                 return ((string)(this["ConnectionName"]));
@@ -71,8 +71,8 @@ namespace AsyncLogging.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute(@"INSERT [ServerRequestLogs]
-            ([RequestDate],[RequestDateInTicks],[RequestBy],[RequestMethod],[RequestUrl],[RequestBody],[ResponseCode],[ResponseBody],[Host],[CreatedOn])
-            VALUES(@RequestDate,@RequestDateInTicks,@RequestBy,@RequestMethod,@RequestUrl,@RequestBody,@ResponseCode,@ResponseBody,@Host,@CreatedOn)")]
+            ([RequestDate],[RequestBy],[RequestMethod],[RequestUrl],[RequestBody],[ResponseCode],[ResponseBody],[Host])
+            VALUES(@RequestDate,@RequestBy,@RequestMethod,@RequestUrl,@RequestBody,@ResponseCode,@ResponseBody,@Host)")]
         public string SqlInsertStatement {
             get {
                 return ((string)(this["SqlInsertStatement"]));

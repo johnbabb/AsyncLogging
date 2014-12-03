@@ -20,8 +20,8 @@ namespace AsyncLogging.SqlCommands
 
         private string sqlInsertStatment = @"
             INSERT [ServerRequestLogs]
-            ([RequestDate],[RequestDateInTicks],[RequestBy],[RequestMethod],[RequestUrl],[RequestBody],[ResponseCode],[ResponseBody],[Host],[CreatedOn])
-            VALUES(@RequestDate,@RequestDateInTicks,@RequestBy,@RequestMethod,@RequestUrl,@RequestBody,@ResponseCode,@ResponseBody,@Host,@CreatedOn)
+            ([RequestDate],[RequestBy],[RequestMethod],[RequestUrl],[RequestBody],[ResponseCode],[ResponseBody],[Host])
+            VALUES(@RequestDate,@RequestBy,@RequestMethod,@RequestUrl,@RequestBody,@ResponseCode,@ResponseBody,@Host)
             ";
 
         protected SqlConnection connection;
@@ -90,7 +90,7 @@ namespace AsyncLogging.SqlCommands
                     command.Dispose();
                 }
             }
-            catch (Exception ex)
+            catch
             {                
                 throw;
             }
@@ -112,7 +112,7 @@ namespace AsyncLogging.SqlCommands
                 return command.ExecuteNonQueryAsync().ToApm(cb, state);
 
             }
-            catch (Exception ex)
+            catch
             {
                 if (this.connection != null)
                 {
@@ -135,7 +135,7 @@ namespace AsyncLogging.SqlCommands
                 rowCount = command.Result;
 
             }
-            catch (Exception ex)
+            catch
             {
                 rowCount = -1;
                 if (connection != null)
@@ -164,7 +164,6 @@ namespace AsyncLogging.SqlCommands
             var command = new SqlCommand(this.GetInsertCommandSql(), connection);
 
             command.Parameters.Add("@RequestDate", SqlDbType.DateTime).Value = obj.RequestDate;
-            command.Parameters.Add("@RequestDateInTicks", SqlDbType.BigInt).Value = obj.RequestDateInTicks;
             command.Parameters.Add("@RequestBy", SqlDbType.VarChar).Value = obj.RequestBy;
             command.Parameters.Add("@RequestMethod", SqlDbType.VarChar).Value = obj.RequestMethod;
             command.Parameters.Add("@RequestUrl", SqlDbType.NVarChar).Value = obj.RequestUrl;
@@ -172,7 +171,6 @@ namespace AsyncLogging.SqlCommands
             command.Parameters.Add("@ResponseCode", SqlDbType.Int).Value = obj.ResponseCode;
             command.Parameters.Add("@ResponseBody", SqlDbType.NVarChar).Value = obj.ResponseBody;
             command.Parameters.Add("@Host", SqlDbType.VarChar).Value = obj.Host;
-            command.Parameters.Add("@CreatedOn", SqlDbType.Date).Value = DateTime.Now;
 
             return command;
         }
@@ -186,28 +184,22 @@ namespace AsyncLogging.SqlCommands
             {
                 return new SqlConnection(connString);
             }
-            catch (Exception ex)
+            catch
             {
                 throw;
             }
-            return null;
         }
 
         private static string GetConnectionString(string connectionName)
         {
-            var connString = "";
             
             if (ConfigurationManager.ConnectionStrings.Count > 0
                 && ConfigurationManager.ConnectionStrings[connectionName] != null)
             {
-                connString = ConfigurationManager.ConnectionStrings[connectionName].ConnectionString;
-            }
-            else
-            {
-                connString = connectionName;
+                return ConfigurationManager.ConnectionStrings[connectionName].ConnectionString;
             }
 
-            return connString;
+            throw new ArgumentException("Connection with the connectionName: " + connectionName + " is not found in the ConfigurationManager.ConnectionStrings sections.  Please add the connection string to this section, or use another named connection from this section.");
         }
 
         private int _rowCount = 0;
