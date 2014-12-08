@@ -56,5 +56,10 @@ SQL Server config
       </setting>
     </AsyncLogging.Properties.Settings>
   </applicationSettings>
+   <system.webServer>
+       <modules runAllManagedModulesForAllRequests="true"/>
+         <add name="AsyncRequestLogModule" type="AsyncLogging.AsyncRequestLogModule"/>
+       </modules>
+   </system.webServer>
 </configuration>
 ```
